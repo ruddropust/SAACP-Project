@@ -1,0 +1,443 @@
+l1
+#include<bits/stdc++.h>
+
+using namespace std;
+vector<string> tokens;
+int comment=0;
+vector<string>key,special,constant,variable,oprtr;
+bool is_separator(char ch){
+    string str = " ,;:(){}[]";
+    string tmp;
+    for(int i=0;i<str.size();i++){
+        if(ch==str[i]){
+            if(ch!=' '){
+                tmp.push_back(ch);
+                special.push_back(tmp);
+            }
+            return true;
+        }
+    }return false;
+}
+
+bool is_constant(string s){
+    bool valid = true;
+    for(int i=0;i<s.length();i++){
+        if((s[i]>='0'&&s[i]<='9')||(s[i]=='.'))
+            continue;
+        else{
+            valid =false;break;
+        }
+    }
+    return valid;
+}
+
+bool is_operator(char ch){
+    string str = "+-*/%=><!&|";
+    for(int i=0;i<str.size();i++){
+        if(ch==str[i]){
+            return true;
+        }
+    }return false;
+}
+bool is_keyword(string s) {
+    vector<string> keyword = {"auto", "break", "case", "char", "const", "continue", "default",
+                              "do", "double", "else", "enum", "extern", "float", "for", "goto",
+                              "if", "int", "long", "register", "return", "short", "signed",
+                              "sizeof", "static", "struct", "switch", "typedef", "union",
+                              "unsigned", "void", "volatile", "while"};
+
+    auto f = find(keyword.begin(),keyword.end(),s);
+    if(f==keyword.end()){
+        return false;
+    }
+    else{
+        return true;
+    }
+}
+
+int main(){
+    string str;
+
+    do{
+        string temp="";
+        getline(cin,str);
+        for(int i=0; i<str.size() ; i++) {
+            if(str[i]=='/' &&str[i+1]=='/'){
+                comment++;
+                i=0;
+                getline(cin,str);
+            }
+            else if(str[i]=='/' &&str[i+1]=='*'){
+                comment++;
+                bool flag=false;
+                for(; i<str.size() && !flag ; i++){
+                    if(str[i-1]=='*' && str[i]=='/'){
+                        flag=true;
+                        break;
+                    }
+                    if((i+1)==str.size()){
+                        i=0;
+                        getline(cin,str);
+                    }
+                }
+            }
+            else if(is_separator(str[i])){
+              if(temp!="")
+              tokens.push_back(temp);
+              temp="";
+             }
+            else if(is_operator(str[i]) && is_operator(str[i+1])){
+                if(temp!="")
+                    tokens.push_back(temp);
+                temp="";
+                temp.push_back(str[i]);
+                temp.push_back(str[i+1]);
+                oprtr.push_back(temp);
+                temp="";
+                i++;
+             }
+            else if(is_operator(str[i])){
+                if(temp!="")
+                    tokens.push_back(temp);
+                temp="";
+                temp.push_back(str[i]);
+                oprtr.push_back(temp);
+                temp="";
+            }
+            else {
+                temp += str[i];
+          }
+        }
+    }
+    while(str!="$");
+
+    for(string it : tokens){
+        if(is_keyword(it)){
+            key.push_back(it);
+        }
+        else if(is_constant(it)){
+            constant.push_back(it);
+        }
+        else{
+            variable.push_back(it);
+        }
+    }
+
+    cout<<"Identifier : ";
+    for(string it : variable){
+        cout<<it<<" ";
+    }
+    cout<<endl;
+    cout<<"keywords : ";
+    for(string it : key){
+        cout<<it<<" ";
+    }
+    cout<<endl;
+    cout<<"Operators : ";
+    for(string it : oprtr){
+        cout<<it<<" ";
+    }
+    cout<<endl;
+    cout<<"Constants : ";
+    for(string it : constant){
+        cout<<it<<" ";
+    }
+    cout<<endl;
+    cout<<"Special characters : ";
+    for(string it : special){
+        cout<<it<<" ";
+    }
+    cout<<endl;
+    cout<<"Comments : "<<comment;
+    cout<<endl;
+}
+
+lb2
+
+
+#include<bits/stdc++.h>
+
+using namespace std;
+int comment=0;
+int n_letters=0;
+int main(){
+    string str;
+    bool multiline=false;
+    do{
+        getline(cin,str);
+        for(int i=0; i<str.size()  ; i++) {
+            if(str[i]=='/' &&str[i+1]=='/'){
+                comment++;
+                i+=2;
+                while(i<str.size()) {
+                    if(str[i]!=' ')
+                       n_letters++;
+                    i++;
+                }
+                i=0;
+                getline(cin,str);
+            }
+            else if(str[i]=='/' &&str[i+1]=='*'){
+                    comment++;
+                    for(; str[i-1]!='*' || str[i]!='/'  ; i++){
+                    if(str[i]!=' ')
+                        n_letters++;
+                    if((i+1)==str.size()){
+                        i=0;
+                        multiline=true;
+                        getline(cin,str);
+                    }
+                }
+                n_letters-=3;
+            }
+        }
+    } while (str!="$");
+    cout<<"Comment type : ";
+    if(multiline){
+        cout<<"Multiline\n";
+    }
+    else if(comment==0)        cout<<"No Comment\n";
+
+    else{
+        cout<<"Singleline\n";
+    }
+    cout<<"Number of comments : "<<comment;
+    cout<<"\nNumber of letters : "<<n_letters;
+
+    return 0;
+}
+
+lb5
+
+#include<bits/stdc++.h>
+
+#include <utility>
+using namespace std;
+
+class entries{
+public:
+    string name,id_type,data_type,scope,value;
+    entries(){
+        name="";
+        id_type="";
+        data_type="";
+        value="";
+        scope="";
+    }
+};
+vector<entries> symbol_table;
+
+void insert(string name,string id_type, string data_type,string scope, string value){
+    entries entry;
+    entry.name=name;
+    entry.id_type=id_type;
+    entry.data_type=data_type;
+    entry.value=value;
+    entry.scope=scope;
+    symbol_table.push_back(entry);
+}
+
+entries* lookup(string s){
+    for(auto& i:symbol_table){
+        if(i.name==s){
+            return &i;
+        }
+    }
+    return nullptr;
+}
+
+void Delete(string s){
+    for(auto it=symbol_table.begin(); it<symbol_table.end(); it++){
+        if(it->name==s){
+            symbol_table.erase(it);
+            break;
+        }
+    }
+}
+void update(string s,string name,string id_type, string data_type,string scope, string value){
+    for(auto entry=symbol_table.begin();entry<symbol_table.end();entry++){
+        if(entry->name==s){
+            entry->name=name;
+            entry->id_type=id_type;
+            entry->data_type=data_type;
+            entry->value=value;
+            entry->scope=scope;
+        }
+    }
+}
+
+void display(){
+    cout<<"name -- data_type -- id_type -- scope -- value"<<endl;
+    for(auto i:symbol_table){
+        cout<<i.name<<" -- "<<i.data_type<<" -- "<<i.id_type<<" -- "<<i.scope<<" -- "<<i.value<<endl;
+    }
+}
+
+int main(){
+    insert("a","public","int","static","104");
+    display();
+}
+
+
+lb6
+
+#include<bits/stdc++.h>
+using namespace std;
+vector<string>token_list;
+string str;
+int balance=0;
+
+bool is_separator(char ch){
+    string str = " ,;:+-*/%=><!&|";
+        for(int i=0;i<str.size();i++){
+        if(ch==str[i]){
+            return true;
+        }
+    }return false;
+}
+bool is_vartype(string s){
+    vector<string> keyword={"char","double","float","int","long", "short","signed","unsigned"};
+    auto f = find(keyword.begin(),keyword.end(),s);
+    if(f==keyword.end()){
+        return false;
+    }
+    else{
+        return true;
+    }
+}
+bool check(){
+    vector<string> v1;
+    set<string> v2;
+    for(int i=0; i<token_list.size(); i++){
+        if(is_vartype(token_list[i])&&!is_vartype(token_list[i+1])){
+            v1.push_back(token_list[i+1]);
+            v2.insert(token_list[i+1]);
+        }
+    }
+    if(v1.size()==v2.size()){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
+void count_paranthesis(char a){
+    if(a=='('||a=='{'||a=='['){
+        balance++;
+    }
+    else{
+        balance--;
+    }
+}
+
+void tokenize(){
+    string token="";
+    for(char i:str){
+        if(is_separator(i)||i=='\n'){
+            token_list.push_back(token);
+            token="";
+        }
+        else if(i=='('||i=='{'||i==')'||i=='}'||i=='['||i==']'){
+            if(token!=""){
+                token_list.push_back(token);
+                token="";
+            }
+            count_paranthesis(i);
+        }
+        else{
+            token+=i;
+        }
+    }
+    token_list.push_back(token);
+}
+int main(){
+    do{
+        getline(cin,str);
+        if(str!="###") {
+            tokenize();
+        }
+    }
+    while(str!="###");
+
+
+    for(auto i:token_list){
+        cout<<i<<endl;
+    }
+
+    if(balance!=0){
+
+        cout<<"paranthesis mismatch"<<endl;
+    }
+    else{
+        cout<<"paranthesis ok"<<endl;
+    }
+    if(check()){
+        cout<<"no double declaration"<<endl;
+    }
+    else{
+        cout<<"double declaration"<<endl;
+    }
+}
+
+
+lb7
+
+#include<bits/stdc++.h>
+using namespace std;
+#define npos string::npos
+
+bool is_operator(char ch){
+    string str = "+-*/";
+    for(int i=0;i<str.size();i++){
+        if(ch==str[i]){
+            return true;
+        }
+    }return false;
+}
+
+bool any_operator(string s){
+
+    for(char i:s){
+        if(i=='+' || i=='-' || i=='*'|| i== '/')
+            return true;
+    }
+    return false;
+}
+//w=a-b*c/de+e-f
+int main(){
+    string str;
+    getline(cin,str);
+
+    int pos=str.find("=");
+
+    string left=str.substr(0,pos+1);
+    str.erase(0,pos+1);
+    int i=1;
+    while(any_operator(str)){
+        if(str.find("/")!=npos)
+            pos=str.find("/");
+        else if(str.find("*")!=npos)
+            pos=str.find("*");
+        else if(str.find("+")!=npos)
+            pos=str.find("+");
+        else if(str.find("-")!=npos)
+            pos=str.find("-");
+        int back,front;
+        //cout<<pos<<endl;
+        //back = pos+1;
+        //front=pos-1;
+        for(back=pos-1;!is_operator(str[back]) && back>=0;back--){}
+        for(front=pos+1;!is_operator(str[front]) && front<str.size();front++){}
+
+        string temp=str.substr(back+1,front-back-1);
+        string s="t"+ to_string(i);
+        str.replace(back+1,front,s);
+        //cout<<front<<back<<endl;
+        //cout<<str<<endl;
+        cout<<s<<"="<<temp<<endl;
+        i++;
+    }
+    cout<<left<<"t"<<to_string(i-1);
+}
+
